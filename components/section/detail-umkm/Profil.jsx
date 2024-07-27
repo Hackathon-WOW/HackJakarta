@@ -40,31 +40,29 @@ const Profil = () => {
                     </div>
                     <div className="max-w-[250px] my-5">   
                         <p className="text-sm font-bold text-primary-green-dark mb-1">Proposal</p>
-                        <Button color="bg-primary-green-dark"
-                            children={
+                        <Button color="bg-primary-green-dark">
                             <div className="grid grid-cols-6">
-                                <div className="col-span-5 ">
-                                    <p className="text-sm text-white font-bold">Open in Google Drive</p>
-                                </div>
-                                <div className="mx-auto my-auto">
-                                    <img src="arrow_right.svg" className="h-[24px]" />
-                                </div>
-                            </div>} 
-                        />
+                            <div className="col-span-5">
+                                <p className="text-sm text-white font-bold">Open in Google Maps</p>
+                            </div>
+                            <div className="mx-auto my-auto">
+                                <img src="arrow_right.svg" className="h-[24px]" alt="Arrow Right" />
+                            </div>
+                            </div>
+                        </Button>
                     </div>
                     <div className="max-w-[250px] my-5">   
                         <p className="text-sm font-bold text-primary-green-dark mb-1">Address</p>
-                        <Button color="bg-primary-green-dark"
-                            children={
+                        <Button color="bg-primary-green-dark">
                             <div className="grid grid-cols-6">
-                                <div className="col-span-5 ">
-                                    <p className="text-sm text-white font-bold">Open in Google Maps</p>
-                                </div>
-                                <div className="mx-auto my-auto">
-                                    <img src="arrow_right.svg" className="h-[24px]" />
-                                </div>
-                            </div>} 
-                        />
+                            <div className="col-span-5">
+                                <p className="text-sm text-white font-bold">Open in Google Maps</p>
+                            </div>
+                            <div className="mx-auto my-auto">
+                                <img src="arrow_right.svg" className="h-[24px]" alt="Arrow Right" />
+                            </div>
+                            </div>
+                        </Button>
                     </div>
                     <div className="">
                         <p className="text-sm font-bold text-primary-green-dark mb-1">Contact Person</p>

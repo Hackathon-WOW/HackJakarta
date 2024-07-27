@@ -13,7 +13,7 @@ const Navbar = () => {
     },
     {
         pathName: "UMKM Showcase",
-        pathLink: "/umkm"
+        pathLink: "/umkm-showcase"
     }
   ]
 
