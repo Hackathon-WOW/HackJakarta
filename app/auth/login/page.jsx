@@ -4,8 +4,10 @@ import { supabase } from '@/supabase'
 import React, { useState } from 'react'
 import toast, { Toaster } from 'react-hot-toast';
 import { MdOutlineEmail, MdOutlineLockOpen } from "react-icons/md";
+import { useRouter } from 'next/navigation';
 
 const Login = () => {
+    const router = useRouter();
     const [data, setData] = useState({
         email: "",
         password: ""
@@ -13,21 +15,22 @@ const Login = () => {
 
     const login = async () => {
         try{
-            const { data, error } = await supabase.auth.signInWithPassword({
+            const { dataSignIn, error } = await supabase.auth.signInWithPassword({
                 email: data.email,
                 password: data.password
             })
             if (error) {
                 throw error;
+            }else{
+                router.push('/')
             }
-
         } catch (error){
+            toast.error(error.message)
             setData((prev) => ({
                 ...prev,
                 email: "",
                 password: ""
             }));
-            toast.error("Email dan Password yang Anda Masukkan Tidak Sesuai")
         }
     }
 
