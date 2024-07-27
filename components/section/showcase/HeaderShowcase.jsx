@@ -6,7 +6,7 @@ import Dropdown from "@/components/Dropdown";
 
 const HeaderShowcase = () => {
     return (
-        <div>
+        <div className="max-w-[800px] mx-auto">
             <div className="grid grid-rows-2 max-w-[800px]">
                 <p className="text-7xl font-bold text-primary-green-dark text-center">UMKM Showcase</p>
                 <div className="">
@@ -18,7 +18,7 @@ const HeaderShowcase = () => {
                 <div>
                     <Search className="max-w-[800px]"/>
                 </div>
-                <div className="grid grid-cols-2">
+                <div className="grid grid-cols-2 gap-x-4">
                     <Dropdown categories={Category} />
                     <Dropdown categories={Category} />
                 </div>
