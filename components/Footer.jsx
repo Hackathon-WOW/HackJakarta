@@ -35,7 +35,7 @@ const Footer = () => {
             <div className="grid col-span-3">
                     {NavLink.map((nav, index) =>{
                     return (
-                        <Link href={nav.pathLink} key={index} className={`text-white font-normal hover:text-primary-green-light transition-all`}>
+                        <Link href={nav.pathLink} key={index} className={`text-white font-light hover:text-primary-green-light transition-all`}>
                             {nav.pathName}
                         </Link>
                     )
@@ -46,7 +46,7 @@ const Footer = () => {
                     <p className="text-white text-lg font-bold">Grow your business with Us</p>
                 </div>
                 <div>
-                    <p className="text-white font-normal text-sm">Contact Us</p>
+                    <p className="text-white font-light text-sm">Contact Us</p>
                     <div className="flex grid-cols-4 mt-[10px]">
                         <img src="twitter.svg" className="h-[24px] mx-2" />
                         <img src="twitter.svg" className="h-[24px] mx-2" />
@@ -60,8 +60,8 @@ const Footer = () => {
         <div className="w-full mt-[30px]">
             <div className=" min-h-[1px] bg-white inline-block rounded-full "></div>
             <div className="flex justify-between">
-                <div className="text-white text-xs font-normal">© 2024 Grow. All rights reserved</div>
-                <div className="text-white text-xs font-normal underline">Privacy Policy</div>
+                <div className="text-white text-xs font-light">© 2024 Grow. All rights reserved</div>
+                <div className="text-white text-xs font-light underline">Privacy Policy</div>
             </div>
         </div>
      </div>
