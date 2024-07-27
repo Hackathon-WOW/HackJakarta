@@ -5,6 +5,7 @@ import Link from "next/link";
 import { redirect, usePathname } from "next/navigation";
 
 const Navbar = () => {
+    
   const pathName = usePathname();
   const NavLink = [
     {
