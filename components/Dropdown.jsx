@@ -14,7 +14,7 @@ const Dropdown = ({ className = "", categories }) => {
                     value={selectedCategory}
                     onChange={handleChange}
                     placeholder="Select Category"
-                    className="bg-white border border-gray-300 rounded-lg w-full p-3 drop-shadow-lg"
+                    className="bg-white border rounded-lg w-full p-3 drop-shadow-lg"
                 >
                     {categories.map((category, index) => (
                         <option key={index} value={category}>

@@ -5,7 +5,7 @@ const Status = ({ className = "", text = "Kategori UMKM", color = "bg-primary-da
 
     return (
         <div
-            className={`flex w-full items-center justify-center rounded-3xl ${color} px-5 py-2.5 drop-shadow-lg ${className}`}
+            className={`flex items-center mr-3 justify-center rounded-3xl ${color} px-5 py-2.5 drop-shadow-lg ${className}`}
         >
             <div className="text-xs text-center leading-[normal] tracking-[0px] text-white">
                 {text}
