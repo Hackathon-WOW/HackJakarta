@@ -6933,4 +6933,8 @@ Purchase Date,Financial Accounting,Item Category,Item,Net Quantity,Net Price,Sub
 07/20/25,Food,Beverages,Ocha,2,4000,8000,0,7000,1000
 07/20/25,Food,Beverages,Lychee Tea,3,6000,18000,0,15000,3000
 07/20/25,Food,Beverages,Oolong Tea,1,6000,6000,0,5000,1000
+<<<<<<< HEAD
 07/20/25,Food,Beverages,Soda,3,5000,15000,0,12000,3000
+=======
+07/20/25,Food,Beverages,Soda,3,5000,15000,0,12000,3000
+>>>>>>> 751f5bd4b30e9ad87c5287085e62cbb408c1627f
