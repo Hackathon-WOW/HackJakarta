@@ -1,8 +1,8 @@
-"use client"
-import React, { useEffect, useState } from 'react'
-import { groupSalesByMonth, revNProfitMargin } from './utils'
+"use client";
+import React, { useEffect, useState } from 'react';
+import { groupSalesByMonth, revNProfitMargin } from './utils';
+import { Bar, BarChart, XAxis } from 'recharts';
 import Papa from 'papaparse';
-import { Bar, BarChart, LabelList, XAxis } from "recharts"
 
 import {
   Card,
@@ -10,79 +10,74 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "./card"
+} from './card';
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "./chart"
+} from './chart';
+
+// import DATA from '../../../public/Dummy.csv';
 
 const ProfitMargin = () => {
-    const [data, setData] = useState([]);
-    useEffect(() => {
-        const fetchData = async () => {
-          const response = await fetch('/Dummy.csv');
-          const reader = response.body.getReader();
-          const result = await reader.read();
-          const decoder = new TextDecoder("utf-8");
-          const csvData = decoder.decode(result.value);
-          const parsedData = Papa.parse(csvData, { 
-            header: true, 
-            skipEmptyLines: true 
-          }).data;
-          setData(parsedData);
-        };
-        fetchData();
-    }, []);
-    
-    const [profitQuantity, setProfitQuantity] = useState([]);
-    useEffect(() => {
-        const profit = revNProfitMargin(data);
-        setProfitQuantity(profit);
-    }, [data]);
-    const [salesRevenue, setSalesRevenue] = useState([]);
-    useEffect(() => {
-        const profit = groupSalesByMonth(data);
-        setSalesRevenue(profit);
-    }, [data]);
+  const [salesRevenue, setSalesRevenue] = useState([]);
+  const [profitQuantity, setProfitQuantity] = useState([]);
 
-    for (let index = 0; index < salesRevenue.length; index++) {
-        const element = salesRevenue[index];
-        element["Profit"] = profitQuantity[index].Profit
-        element["COGS"] = element.SalesRevenues - profitQuantity[index].Profit
+  useEffect(() => {
+    const parsedData = Papa.parse("", {
+      header: true,
+      skipEmptyLines: true,
+    }).data;
+
+    const profit = revNProfitMargin(parsedData);
+    setProfitQuantity(profit);
+
+    const sales = groupSalesByMonth(parsedData);
+    setSalesRevenue(sales);
+  }, []);
+
+  useEffect(() => {
+    if (salesRevenue.length > 0 && profitQuantity.length > 0) {
+      const updatedSalesRevenue = salesRevenue.map((element, index) => ({
+        ...element,
+        Profit: profitQuantity[index]?.Profit || 0,
+        COGS: element.SalesRevenues - (profitQuantity[index]?.Profit || 0),
+      }));
+      setSalesRevenue(updatedSalesRevenue);
     }
-    console.log(salesRevenue)
-    const chartConfig = {
-        Profit: {
-          label: "Profit",
-          color: "#F7CA52",
-        },
-        COGS: {
-          label: "COGS",
-          color: "#0F5132",
-        },
-        SalesRevenues: {
-            label: "Sales Revenue"
-        }
-      }
+  }, [salesRevenue, profitQuantity]);
+
+  const chartConfig = {
+    Profit: {
+      label: 'Profit',
+      color: '#F7CA52',
+    },
+    COGS: {
+      label: 'COGS',
+      color: '#0F5132',
+    },
+    SalesRevenues: {
+      label: 'Sales Revenue',
+    },
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Tooltip - Default</CardTitle>
+        <CardTitle>Revenue and Profit Margins</CardTitle>
         <CardDescription>
-          Default tooltip with ChartTooltipContent.
+          Evaluate revenue generation and profit margins over time.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
-          <BarChart accessibilityLayer data={salesRevenue}>
+          <BarChart data={salesRevenue}>
             <XAxis
               dataKey="date"
               tickLine={false}
               tickMargin={10}
               axisLine={false}
-              tickFormatter={(value) => value}
             />
             <Bar
               dataKey="Profit"
@@ -105,7 +100,7 @@ const ProfitMargin = () => {
         </ChartContainer>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default ProfitMargin
+export default ProfitMargin;

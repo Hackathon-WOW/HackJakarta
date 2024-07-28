@@ -24,6 +24,7 @@
     "tailwind-merge": "^2.4.0"
   },
   "devDependencies": {
+    "csv-loader": "^3.0.5",
     "eslint": "^8",
     "eslint-config-next": "14.2.5",
     "postcss": "^8",

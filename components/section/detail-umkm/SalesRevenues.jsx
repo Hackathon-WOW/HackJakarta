@@ -52,6 +52,7 @@ const SalesRevenues = () => {
           color: "#0F5132"
         },
     }
+
     
     return (
         <div className=''>

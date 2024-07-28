@@ -8,6 +8,7 @@ import Button from "@/components/Button";
 import ProfitMargin from "./ProfitMargin";
 import SalesRevenues from "./SalesRevenues";
 
+
 const FinancialAnalysis = () => {
     return (
         <div className="mx-20 my-20">
