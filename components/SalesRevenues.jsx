@@ -3,7 +3,7 @@
 import React from 'react'
 import { useState, useEffect } from 'react';
 import Papa from 'papaparse';
-import { groupSalesByMonth } from './utils';
+import { groupSalesByMonth } from '../umkm/utils';
 import { TrendingUp } from "lucide-react"
 import { CartesianGrid, Line, LineChart, XAxis } from "recharts"
 
@@ -14,13 +14,13 @@ import {
     CardFooter,
     CardHeader,
     CardTitle,
-  } from "@/components/section/detail-umkm/card"
+  } from "@/components/ui/card"
 import {
     ChartConfig,
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
-  } from "@/components/section/detail-umkm/chart"
+  } from "@/components/ui/chart"
 
 const SalesRevenues = () => {
     const [data, setData] = useState([]);

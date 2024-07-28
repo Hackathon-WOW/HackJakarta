@@ -6,7 +6,7 @@ export const Category = [
     "Creative",
     "Agriculture",
     "Farms",
-    "HandyCrafts",
+    "Furnitures",
     "Health Care",
     "Education",
 ] 
