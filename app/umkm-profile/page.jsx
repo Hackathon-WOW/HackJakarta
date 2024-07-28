@@ -25,31 +25,6 @@ const profile = () => {
     // }
     // const metadataVar = fetchData()
 
-    const [profile, setProfile] =  useState(null)
-    const [fetchError, setFetchError] =  useState(null)
-
-    useEffect(()=>{
-        const fetchData = async () => {
-            const {data,error} = await supabase
-            .schema('main')
-            .from('umkm_profile')
-            .select()
-
-            if (error){
-                setFetchError('gabisa bahasa enggres')
-                setProfile("gabisa bhs enggres")
-                console.log(error)
-            } else if (data){
-                console.log("succeess")
-                setProfile(data)
-                setFetchError(null)
-            }
-        }
-
-        fetchData()
-    },[])
-
-
     const handleChange = (e) => {
         const { name, value } = e.target;
         setData((prev) => ({
