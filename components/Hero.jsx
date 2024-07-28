@@ -3,7 +3,7 @@
 export default function HeroBanner({ className = "" }) {
   return (
     <section
-      className={`relative z-0 flex w-full items-end pb-52 pl-28 pr-[700px] pt-96 h-full ${className}`}
+      className={`relative z-0 flex w-full items-end pb-52 pl-28 pr-[700px] pt-96 max-h-screen ${className}`}
     >
       <div className="bg-background absolute inset-0 z-0 bg-cover bg-center" />
       <div className="absolute inset-0 z-0 bg-[#18392bb2]" />
