@@ -8,6 +8,7 @@ import { Router } from "next/router";
 import { useState } from "react";
 
 const Navbar = () => {
+    
   const pathName = usePathname();
   const router = useRouter()
   let sessioncoba = '';
