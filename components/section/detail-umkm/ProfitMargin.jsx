@@ -1,8 +1,16 @@
+<<<<<<< HEAD
 "use client"
 import React, { useEffect, useState } from 'react'
 import { groupSalesByMonth, revNProfitMargin } from './utils'
 import Papa from 'papaparse';
 import { Bar, BarChart, LabelList, XAxis } from "recharts"
+=======
+"use client";
+import React, { useEffect, useState } from 'react';
+import { groupSalesByMonth, revNProfitMargin } from './utils';
+import { Bar, BarChart, XAxis } from 'recharts';
+import Papa from 'papaparse';
+>>>>>>> deacc7786f071bc644f3b46df4165d8214dea359
 
 import {
   Card,
@@ -10,12 +18,17 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+<<<<<<< HEAD
 } from "./card"
+=======
+} from './card';
+>>>>>>> deacc7786f071bc644f3b46df4165d8214dea359
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+<<<<<<< HEAD
 } from "./chart"
 
 const ProfitMargin = () => {
@@ -72,17 +85,78 @@ const ProfitMargin = () => {
         <CardTitle>Tooltip - Default</CardTitle>
         <CardDescription>
           Default tooltip with ChartTooltipContent.
+=======
+} from './chart';
+
+// import DATA from '../../../public/Dummy.csv';
+
+const ProfitMargin = () => {
+  const [salesRevenue, setSalesRevenue] = useState([]);
+  const [profitQuantity, setProfitQuantity] = useState([]);
+
+  useEffect(() => {
+    const parsedData = Papa.parse("", {
+      header: true,
+      skipEmptyLines: true,
+    }).data;
+
+    const profit = revNProfitMargin(parsedData);
+    setProfitQuantity(profit);
+
+    const sales = groupSalesByMonth(parsedData);
+    setSalesRevenue(sales);
+  }, []);
+
+  useEffect(() => {
+    if (salesRevenue.length > 0 && profitQuantity.length > 0) {
+      const updatedSalesRevenue = salesRevenue.map((element, index) => ({
+        ...element,
+        Profit: profitQuantity[index]?.Profit || 0,
+        COGS: element.SalesRevenues - (profitQuantity[index]?.Profit || 0),
+      }));
+      setSalesRevenue(updatedSalesRevenue);
+    }
+  }, [salesRevenue, profitQuantity]);
+
+  const chartConfig = {
+    Profit: {
+      label: 'Profit',
+      color: '#F7CA52',
+    },
+    COGS: {
+      label: 'COGS',
+      color: '#0F5132',
+    },
+    SalesRevenues: {
+      label: 'Sales Revenue',
+    },
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Revenue and Profit Margins</CardTitle>
+        <CardDescription>
+          Evaluate revenue generation and profit margins over time.
+>>>>>>> deacc7786f071bc644f3b46df4165d8214dea359
         </CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
+<<<<<<< HEAD
           <BarChart accessibilityLayer data={salesRevenue}>
+=======
+          <BarChart data={salesRevenue}>
+>>>>>>> deacc7786f071bc644f3b46df4165d8214dea359
             <XAxis
               dataKey="date"
               tickLine={false}
               tickMargin={10}
               axisLine={false}
+<<<<<<< HEAD
               tickFormatter={(value) => value}
+=======
+>>>>>>> deacc7786f071bc644f3b46df4165d8214dea359
             />
             <Bar
               dataKey="Profit"
@@ -105,7 +179,14 @@ const ProfitMargin = () => {
         </ChartContainer>
       </CardContent>
     </Card>
+<<<<<<< HEAD
   )
 }
 
 export default ProfitMargin
+=======
+  );
+};
+
+export default ProfitMargin;
+>>>>>>> deacc7786f071bc644f3b46df4165d8214dea359
