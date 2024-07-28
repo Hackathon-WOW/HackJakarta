@@ -4,7 +4,7 @@ import Header from './components/Header'
 const Home = () => {
   return (
     <>
-    <div className='bg-primary-green-light'>
+    <div className='bg-primary-green-dark'>
       <Header />
     </div>
     </>

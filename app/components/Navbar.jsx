@@ -3,9 +3,14 @@
 import { supabase } from "@/supabase";
 import Link from "next/link";
 import { redirect, usePathname } from "next/navigation";
+import { useRouter } from 'next/navigation';
+import { Router } from "next/router";
+import { useState } from "react";
 
 const Navbar = () => {
   const pathName = usePathname();
+  const router = useRouter()
+  let sessioncoba = '';
   const NavLink = [
     {
         pathName: "Home",
@@ -15,22 +20,27 @@ const Navbar = () => {
         pathName: "UMKM Showcase",
         pathLink: "/umkm"
     },
-    {
-        pathName: "Open Tender",
-        pathLink: "/tender"
-    },
+
   ]
 
-  async function  getSession() {
+  const  getSession = async()=> {
       const { data : {session} } = await supabase.auth.getSession()
+      sessioncoba = session
       return session
   }
 
+  const logout = async() => {
+    const { error } = await supabase.auth.signOut()
+    sessioncoba = await supabase.auth.getSession()
+    window.location.reload()
+  }
+
+
   return (
-    <nav className="flex gap-8">
+    <nav className="flex gap-8 justify-between mx-20">
         {NavLink.map((nav, index) =>{
             return (
-                <Link href={nav.pathLink} key={index} className={`${nav.pathLink===pathName && "text-primary-green-dark border-b-2 border-accent"} font-medium hover:text-primary-green-medium hover:border-b-2 border-primary-green-dark transition-all`}>
+                <Link href={nav.pathLink} key={index} className={`${nav.pathLink===pathName && "text-white border-b-2 border-accent"} font-medium hover:text-primary-orange-medium hover:border-b-2 border-white transition-all`}>
                     {nav.pathName}
                 </Link>
             )
@@ -38,7 +48,10 @@ const Navbar = () => {
         {
             getSession().then(session => {
                 return (
-                session ? <button className="w-32 h-10 rounded-lg bg-primary-green-dark border-2 border-white outline-none cursor-pointer font-medium hover:bg-primary-green-light hover:border-primary-green-dark hover:text-primary-green-dark duration-300 text-white">Logout</button>:<button className="w-32 h-10 rounded-lg bg-primary-green-dark border-2 border-white outline-none cursor-pointer font-medium hover:bg-primary-green-light hover:border-primary-green-dark hover:text-primary-green-dark duration-300 text-white">Login</button>
+                session !== null ? <button onClick={logout} className="w-32 h-10 rounded-lg bg-primary-orange-dark outline-none cursor-pointer font-medium hover:bg-primary-green-light hover:border-primary-green-dark hover:text-primary-green-dark duration-300 text-white">Logout</button>:
+                <Link href="/auth/login">
+                    <button className="w-32 h-10 rounded-lg bg-primary-orange-dark  outline-none cursor-pointer font-medium hover:bg-primary-green-light hover:border-primary-green-dark hover:text-primary-green-dark duration-300 text-white">Login</button>
+                </Link>
                 )
             })
         }
