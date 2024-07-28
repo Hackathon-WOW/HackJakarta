@@ -14,8 +14,8 @@ const Profil = () => {
                     <div>
                         <img src="./right-green.svg" className="" />  
                     </div>
-                    <div className="bg-red-700">
-                        <img src="" className="mx-auto w-[400px] h-[300px]" />
+                    <div className="w-[400px]">
+                        <img className="" src='./Foto-UMKM.png'></img>
                     </div>
                     <div>
                         <img src="./left-green.svg" className="" />  
