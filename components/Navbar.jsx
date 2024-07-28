@@ -23,7 +23,7 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="flex gap-8 bg-primary-green-dark">
+    <nav className="flex gap-8 bg-primary-green-dark sticky">
         {NavLink.map((nav, index) =>{
             return (
                 <Link href={nav.pathLink} key={index} className={`${nav.pathLink===pathName && "hover:text-white border-b-2 border-accent"} 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import PropTypes from "prop-types";
 
 const Status = ({ className = "", text = "Kategori UMKM", color = "bg-primary-dark-green" }) => {
