@@ -3,8 +3,8 @@
 
 import { supabase } from '@/supabase'
 import React, { useEffect, useState} from 'react'
-import Header from '../components/Header';
 import toast, { Toaster } from 'react-hot-toast';
+import Header from '@/components/Header';
 import { MdOutlineEmail, MdOutlineLockOpen } from "react-icons/md";
 
 const profile = () => {
@@ -61,7 +61,7 @@ const profile = () => {
     return(
         <>
         <div className='bg-primary-green-dark min-h-screen'>
-            <Header />
+            <Header/>
             <div className='bg-accent-superWhite flex flex-col h-full w-full overflow-x-hidden'>
                 <div className='flex flex-row flex-grow mx-60 my-10 h-full w-11/12'>
                     <div className='bg-accent-superWhite text-primary-green-dark text-4xl font-bold my-5'>

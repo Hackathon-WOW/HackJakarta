@@ -5,8 +5,6 @@ import { Category } from "../../../app/static/Category";
 import Dropdown from "@/components/Dropdown";   
 import Status from "@/components/Status";
 import Button from "@/components/Button";
-import ProfitMargin from "./ProfitMargin";
-import SalesRevenues from "./SalesRevenues";
 
 const FinancialAnalysis = () => {
     return (
@@ -36,11 +34,8 @@ const FinancialAnalysis = () => {
                     <div></div>
                 </div>
             </div>
-            <div className="my-10 w-full rounded-xl bg-gray-200 p-10">
-                <div className="grid grid-cols-2 gap-5">
-                    <ProfitMargin/>
-                    <SalesRevenues/>
-                </div>
+            <div className="my-10 w-full rounded-xl bg-gray-200 h-[500px]">
+
             </div>
         </div>
     );
