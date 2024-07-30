@@ -1,17 +1,16 @@
 import Link from "next/link"
 import Navbar from "./Navbar"
+import Image from "next/image"
 
-const Header = () => {
+const Header = ({ User:user }) => {
   return (
-    <header className="py-4 text-primary-green-dark">
+    <header className="py-4 text-accent-white bg-primary-green-dark">
         <div className="container mx-auto flex justify-between items-center">
             <Link href="/">
-                <h1 className="text-4xl font-semibold">
-                   LOGO  
-                </h1>
+                <Image src={"/logo.svg"} width={115} height={60} alt="Grow Logo" priority={true}/>
             </Link>
             <div className="flex items-center align-baseline gap-8">
-                <Navbar />
+                <Navbar User={user}/>
             </div>
 
         </div>

@@ -1,36 +1,16 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## Project Description
+GROW is an app that aims to empower Indonesian SMEs by providing an application that simplifies the creation of financial visualizations and reports for investors. The primary objective is to enhance financial transparency, facilitate access to funding, and improve decision-making for SMEs. Key features include automated financial report generation, intuitive data visualizations, and educational resources on financial management. During the hackathon, we enhanced the application with real-time data integration, optimized report templates for investor presentations, and resolved usability issues to ensure a seamless user experience.
 
-## Getting Started
+GROW is developed by Hackathon Wow Team for HackJakarta that focus on solving the critical issue of **Financial Inclusion**. Jakarta is experiencing a digital boom, opening new opportunities for small vendors who may face challenges in adopting new technologies. Our solution aims to integrate this demographic into the wider economy, making the digital transition smooth and beneficial.
 
-First, run the development server:
+## Tech Stack
+Our project utilizes the following tech stack:
+ - **Next JS** : For server-side rendering and building the web application framework.
+ - **React JS** : For creating interactive and dynamic user interfaces.
+ - **Tailwind CSS** : For styling the web pages.
+ - **Supabase** : For database management, authentication, storage, and real-time data syncing.
+ - **Vercel** : For Web deployment.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## Demo 
+To access our application, you can access by clicking these links :
+[GROW App](https://hack-jakarta.vercel.app)

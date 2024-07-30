@@ -1,11 +1,10 @@
 "use client";
 
-import { supabase } from "@/supabase";
 import Link from "next/link";
-import { redirect, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { logout } from "../auth/actions";
 
-const Navbar = () => {
-    
+const Navbar = ({ User:user }) => {
   const pathName = usePathname();
   const NavLink = [
     {
@@ -16,32 +15,25 @@ const Navbar = () => {
         pathName: "UMKM Showcase",
         pathLink: "/umkm"
     },
-    {
-        pathName: "Open Tender",
-        pathLink: "/tender"
-    },
   ]
 
-  async function  getSession() {
-      const { data : {session} } = await supabase.auth.getSession()
-      return session
-  }
-
   return (
-    <nav className="flex gap-8">
+    <nav className="flex gap-8 bg-primary-green-dark sticky">
         {NavLink.map((nav, index) =>{
-            return (
-                <Link href={nav.pathLink} key={index} className={`${nav.pathLink===pathName && "text-primary-green-dark border-b-2 border-accent"} font-medium hover:text-primary-green-medium hover:border-b-2 border-primary-green-dark transition-all`}>
-                    {nav.pathName}
-                </Link>
-            )
+          return (
+            <Link href={nav.pathLink} key={index} className={`${nav.pathLink===pathName && "text-accent-superWhite border-b-2 border-accent-superWhite"} h-7 my-auto font-medium hover:text-primary-green-light hover:border-b-2 border-primary-green-light transition-all`}>
+              {nav.pathName}
+            </Link>
+          )
         })}
+				
         {
-            getSession().then(session => {
-                return (
-                session ? <button className="w-32 h-10 rounded-lg bg-primary-green-dark border-2 border-white outline-none cursor-pointer font-medium hover:bg-primary-green-light hover:border-primary-green-dark hover:text-primary-green-dark duration-300 text-white">Logout</button>:<button className="w-32 h-10 rounded-lg bg-primary-green-dark border-2 border-white outline-none cursor-pointer font-medium hover:bg-primary-green-light hover:border-primary-green-dark hover:text-primary-green-dark duration-300 text-white">Login</button>
-                )
-            })
+        	user ? 
+					<button onClick={logout()} className="w-32 h-10 rounded-lg bg-primary-orange-dark border-2 border-primary-green-dark outline-none cursor-pointer font-medium hover:bg-primary-orange-light hover:border-primary-green-dark hover:text-primary-orange-dark duration-100 text-white">Logout</button>
+					:
+					<Link href={"/auth/login"}>
+						<button className="w-32 h-10 rounded-lg bg-primary-orange-dark border-2 border-primary-green-dark outline-none cursor-pointer font-medium hover:bg-primary-orange-light hover:border-primary-green-dark hover:text-primary-orange-dark duration-100 text-white">Login</button>
+					</Link>
         }
     </nav>
   )
