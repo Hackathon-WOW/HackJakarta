@@ -1,26 +1,23 @@
 "use client"
 
-import React, { useEffect, useState } from 'react'
-import Header from './components/Header'
-import { createClient } from '@/utils/supabase/client'
+import React from 'react';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer'
+import HighlightsModule from '@/components/HighlightsModule'
+import HeroBanner from '@/components/Hero'
 
 const Home = () => {
-  const [user, setUser] = useState(null);
-  
-  useEffect(() => {
-    const fetchUser = async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-    };
-    fetchUser();
-  }, []);
-
   return (
     <>
-      <Header User={user}/>
+    <div className='bg-primary-green-dark'>
+      <Header />
+      <HeroBanner />
+      <HighlightsModule />
+      <Footer />
+    </div>
     </>
   )
 }
 
 export default Home
+

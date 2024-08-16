@@ -1,9 +1,10 @@
 "use client"
 
 import React, { useState } from 'react';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { signup } from '../actions';
 import { MdOutlineEmail, MdOutlineLockOpen } from "react-icons/md";
+import ToasterStyle from '@/components/toaster';
 
 const Register = () => {
   const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/; 
@@ -40,22 +41,7 @@ const Register = () => {
   
   return (
     <div className="min-h-screen text-white flex h-full w-screen justify-center items-center bg-gradient-to-b from-primary-green-dark to-primary-orange-dark">
-      <Toaster position='top-right' gutter={3}
-              toastOptions={{
-                success: {
-                  style: {
-                    border: '1px solid #52D689',
-                    background: '#C7DDB5'
-                  },
-                },
-                error: {
-                  style: {
-                    border: '1px solid #F97072',
-                    background: '#FECACA'
-                  },
-                },
-              }}
-              />
+      <ToasterStyle />
       <div className="bg-accent-superWhite border border-accent-lightGrey rounded-md p-8 my-4 shadow-lg backdrop-filter backdrop-blur bg-opacity-100 items-center relative">
         <div className='h-full flex flex-col items-center m-10'>
           <div className="text-accent-black text-4xl font-bold my-4 mx-auto">Register</div>
@@ -84,7 +70,7 @@ const Register = () => {
               <div className='border border-t-0 border-accent-black w-full'></div>
                 <div className='mt-4 font-semibold text-md text-accent-black text-center'>
                   Already have an account? <span>
-                    <a href="./auth/login" className='text-primary-orange-dark hover:text-primary-orange-medium hover:underline hover:underline-offset-4 duration-300'>
+                    <a href="/auth/login" className='text-primary-orange-dark hover:text-primary-orange-medium hover:underline hover:underline-offset-4 duration-300'>
                       Sign In Here
                     </a>
                   </span>

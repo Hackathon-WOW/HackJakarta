@@ -2,9 +2,10 @@
 
 import { createClient } from '@/utils/supabase/client';
 import React, { useState } from 'react'
+import { redirect } from 'next/navigation'
 import { MdOutlineEmail, MdOutlineLockOpen } from "react-icons/md";
 import toast from 'react-hot-toast';
-import ToasterStyle from '../../components/toaster'
+import ToasterStyle from '../../../components/toaster'
 
 const Login = () => {
     const [data, setData] = useState({
@@ -14,7 +15,6 @@ const Login = () => {
 
     const login = async () => {
         const supabase = createClient();
-        console.log(await supabase.auth.getUser)
         try{
             const { error } = await supabase.auth.signInWithPassword({
                 email: data.email,
@@ -25,7 +25,7 @@ const Login = () => {
                 throw error;
             }
             revalidatePath('/', 'layout')
-            redirect('/')
+            redirect('/account')
             
         } catch (error){
             setData((prev) => ({
@@ -66,7 +66,7 @@ const Login = () => {
                     <div className='border border-t-0 border-accent-black w-full'></div>
                     <div className='mt-4 font-semibold text-md text-accent-black text-center'>
                         Dont have an account? <span>
-                            <a href="./auth/register" className='text-primary-orange-dark hover:text-primary-orange-medium hover:underline hover:underline-offset-4 duration-300'>
+                            <a href="/auth/register" className='text-primary-orange-dark hover:text-primary-orange-medium hover:underline hover:underline-offset-4 duration-300'>
                                 Sign Up Here
                             </a>
                         </span>
