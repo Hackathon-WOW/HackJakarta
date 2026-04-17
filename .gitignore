@@ -7,6 +7,15 @@
 .yarn/install-state.gz
 .env
 
+# server
+/server/node_modules
+/server/dist
+/server/uploads
+
+# client
+/client/node_modules
+/client/.next
+
 # testing
 /coverage
 
