@@ -60,13 +60,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Ensure deploy dir exists
+      - name: Prepare droplet (dir + .env)
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script: mkdir -p "${{ secrets.DEPLOY_PATH }}/deploy"
+          script: |
+            mkdir -p "${{ secrets.DEPLOY_PATH }}/deploy"
+            cat > "${{ secrets.DEPLOY_PATH }}/.env" <<'GROW_ENV_EOF'
+            ${{ secrets.ENV_FILE }}
+            GROW_ENV_EOF
+            echo "wrote .env ($(wc -l < "${{ secrets.DEPLOY_PATH }}/.env") lines)"
       - name: Copy compose + Caddyfile to droplet
         uses: appleboy/scp-action@v0.1.7
         with:
