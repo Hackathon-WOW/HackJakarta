@@ -1,17 +1,17 @@
 name: grow-prod
 
-# Production stack — pulls prebuilt images from GHCR (built in CI, like qrypto/goodcafes).
-# The droplet never builds. Caddy terminates TLS and routes one domain:
-#   /api/* -> gateway,  everything else -> frontend.
-# On a shared droplet that already uses 80/443, set CADDY_HTTP_PORT/CADDY_HTTPS_PORT
-# to free ports (or route to the frontend/gateway from your existing proxy).
+# Build-on-droplet variant (no GHCR needed). Used for direct SSH deploys.
+# Isolated from other apps on the host: own project name, own port, /opt/grow.
 
 x-backend: &backend
-  image: ${BACKEND_IMAGE:-ghcr.io/hackathon-wow/grow-backend:latest}
+  build:
+    context: ./backend
+    dockerfile: Dockerfile
+  image: grow-backend:local
   restart: unless-stopped
 
 x-backend-env: &backend-env
-  DATABASE_URL: postgresql://${POSTGRES_USER:-root}:${POSTGRES_PASSWORD:-rootpassword}@postgres:5432/${POSTGRES_DB:-hackjakarta}?schema=public
+  DATABASE_URL: postgresql://${POSTGRES_USER:-grow}:${POSTGRES_PASSWORD:-growpass}@postgres:5432/${POSTGRES_DB:-grow}?schema=public
   REDIS_URL: redis://redis:6379
   RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
   JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
@@ -30,13 +30,13 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-root}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-rootpassword}
-      POSTGRES_DB: ${POSTGRES_DB:-hackjakarta}
+      POSTGRES_USER: ${POSTGRES_USER:-grow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-growpass}
+      POSTGRES_DB: ${POSTGRES_DB:-grow}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-root} -d ${POSTGRES_DB:-hackjakarta}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-grow} -d ${POSTGRES_DB:-grow}"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -64,7 +64,6 @@ services:
       retries: 10
     restart: unless-stopped
 
-  # One-shot migrations: run via `docker compose ... run --rm migrate`
   migrate:
     <<: *backend
     restart: "no"
@@ -134,7 +133,12 @@ services:
       - ai-service
 
   frontend:
-    image: ${FRONTEND_IMAGE:-ghcr.io/hackathon-wow/grow-frontend:latest}
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${PUBLIC_URL:-http://localhost}
+    image: grow-frontend:local
     restart: unless-stopped
     depends_on:
       - gateway
@@ -142,8 +146,6 @@ services:
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
-    # Only an internal HTTP port — TLS/public routing is handled by the host's
-    # reverse proxy (Traefik) or Cloudflare Tunnel -> grow-prod-caddy-1:80.
     ports:
       - "${CADDY_HTTP_PORT:-8090}:80"
     environment:

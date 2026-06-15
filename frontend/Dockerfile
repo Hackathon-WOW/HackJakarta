@@ -9,8 +9,9 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# Public base URL of the API gateway, baked into the client bundle at build time.
-ARG NEXT_PUBLIC_API_URL="http://localhost:8080"
+# Empty = same-origin (relative /api), correct behind a reverse proxy. Override only if the
+# gateway is on a different origin than the frontend.
+ARG NEXT_PUBLIC_API_URL=""
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build

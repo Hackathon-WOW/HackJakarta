@@ -1,5 +1,8 @@
 FROM oven/bun:1.3-alpine
 
+# Prisma needs OpenSSL on Alpine/musl
+RUN apk add --no-cache openssl libstdc++
+
 WORKDIR /app
 
 # Install dependencies (cached layer)

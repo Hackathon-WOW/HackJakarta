@@ -1,16 +1,11 @@
 name: Deploy
 
-# Same pattern as qrypto / goodcafes:
-#   1. build backend + frontend images in CI and push to GHCR
-#   2. SSH into the droplet and pull-only (no building on the droplet)
+# Build images in CI -> push to GHCR -> droplet pulls (no building on the droplet).
+# Routing is handled on the droplet by Traefik / Cloudflare Tunnel -> grow-prod-caddy-1:80,
+# so this stack binds no public ports and never touches 80/443.
 #
-# Required repo secrets:
-#   DEPLOY_HOST      droplet IP / hostname
-#   DEPLOY_USER      ssh user (e.g. root)
-#   DEPLOY_SSH_KEY   private key already authorized on the droplet (raw, multi-line)
-#   DEPLOY_PATH      compose dir on the droplet (e.g. /opt/grow)
-# Required repo variable:
-#   PUBLIC_URL       public URL baked into the frontend (e.g. https://grow.example.com)
+# Required repo secrets: DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY, DEPLOY_PATH
+# The droplet must already have DEPLOY_PATH/.env in place (managed manually, not by CI).
 # GHCR auth uses the built-in GITHUB_TOKEN.
 
 on:
@@ -50,8 +45,6 @@ jobs:
         with:
           context: ./frontend
           push: true
-          build-args: |
-            NEXT_PUBLIC_API_URL=${{ vars.PUBLIC_URL }}
           tags: ghcr.io/${{ steps.vars.outputs.owner }}/grow-frontend:latest
 
   deploy:
@@ -60,7 +53,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Prepare droplet (dir + .env)
+
+      - name: Prepare droplet (dir + keep routing wired)
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
@@ -68,10 +62,13 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
             mkdir -p "${{ secrets.DEPLOY_PATH }}/deploy"
-            cat > "${{ secrets.DEPLOY_PATH }}/.env" <<'GROW_ENV_EOF'
-            ${{ secrets.ENV_FILE }}
-            GROW_ENV_EOF
-            echo "wrote .env ($(wc -l < "${{ secrets.DEPLOY_PATH }}/.env") lines)"
+            # keep the edge proxy + tunnel able to reach grow (idempotent)
+            docker network connect grow-prod_default goodcafes-edge-1 2>/dev/null || true
+            docker network connect grow-prod_default qrypto-cloudflared-1 2>/dev/null || true
+            if [ ! -f "${{ secrets.DEPLOY_PATH }}/.env" ]; then
+              echo "::error::Missing ${{ secrets.DEPLOY_PATH }}/.env on the droplet — create it once (see .env.production.example)"; exit 1
+            fi
+
       - name: Copy compose + Caddyfile to droplet
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -80,7 +77,8 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           source: "docker-compose.prod.yml,deploy/Caddyfile"
           target: ${{ secrets.DEPLOY_PATH }}
-      - name: Deploy
+
+      - name: Pull & restart
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}

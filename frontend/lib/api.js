@@ -1,5 +1,8 @@
 // Thin client for the API gateway. All calls go through NEXT_PUBLIC_API_URL/api/*
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+// Empty default = same-origin (relative /api), which is correct in production where the
+// frontend and gateway are served from one domain via the reverse proxy. For local dev,
+// set NEXT_PUBLIC_API_URL=http://localhost:8080 in .env.local (gateway on a different port).
+const BASE = process.env.NEXT_PUBLIC_API_URL || "";
 const TOKEN_KEY = "grow_token";
 
 export function getToken() {
