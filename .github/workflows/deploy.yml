@@ -1,11 +1,17 @@
 name: Deploy
 
-# Deploys to the DigitalOcean Droplet over SSH on every push to main (or manually).
+# Same pattern as qrypto / goodcafes:
+#   1. build backend + frontend images in CI and push to GHCR
+#   2. SSH into the droplet and pull-only (no building on the droplet)
+#
 # Required repo secrets:
-#   DEPLOY_HOST      Droplet IP or hostname
-#   DEPLOY_USER      SSH user (e.g. root)
-#   DEPLOY_SSH_KEY   base64 of the private key  ->  base64 -w0 ~/.ssh/grow_deploy
-#   DEPLOY_PATH      (optional) app dir on the Droplet, defaults to ~/grow
+#   DEPLOY_HOST      droplet IP / hostname
+#   DEPLOY_USER      ssh user (e.g. root)
+#   DEPLOY_SSH_KEY   private key already authorized on the droplet (raw, multi-line)
+#   DEPLOY_PATH      compose dir on the droplet (e.g. /opt/grow)
+# Required repo variable:
+#   PUBLIC_URL       public URL baked into the frontend (e.g. https://grow.example.com)
+# GHCR auth uses the built-in GITHUB_TOKEN.
 
 on:
   push:
@@ -14,28 +20,70 @@ on:
 
 concurrency:
   group: deploy-production
-  cancel-in-progress: false
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
-  deploy:
-    name: Deploy to Droplet
+  build:
+    name: Build & push images (GHCR)
     runs-on: ubuntu-latest
     steps:
-      - name: Set up SSH key
-        run: |
-          mkdir -p ~/.ssh && chmod 700 ~/.ssh
-          echo "${{ secrets.DEPLOY_SSH_KEY }}" | tr -d '[:space:]' | base64 -d > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          echo "Key fingerprint:"; ssh-keygen -lf ~/.ssh/id_ed25519 || (echo "::error::DEPLOY_SSH_KEY is not valid base64 of a private key"; exit 1)
+      - uses: actions/checkout@v4
+      - id: vars
+        run: echo "owner=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build & push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: ghcr.io/${{ steps.vars.outputs.owner }}/grow-backend:latest
+      - name: Build & push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: true
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ vars.PUBLIC_URL }}
+          tags: ghcr.io/${{ steps.vars.outputs.owner }}/grow-frontend:latest
 
+  deploy:
+    name: Deploy on droplet (pull only)
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Copy compose + Caddyfile to droplet
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          source: "docker-compose.prod.yml,deploy/Caddyfile"
+          target: ${{ secrets.DEPLOY_PATH }}
       - name: Deploy
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          envs: GHCR_TOKEN,GHCR_USER
+          script: |
+            set -e
+            cd "${{ secrets.DEPLOY_PATH }}"
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml run --rm migrate
+            docker compose -f docker-compose.prod.yml up -d
+            docker image prune -f
+            docker compose -f docker-compose.prod.yml ps
         env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
-        run: |
-          REMOTE_PATH="${DEPLOY_PATH:-~/grow}"
-          ssh -i ~/.ssh/id_ed25519 \
-              -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-              "${DEPLOY_USER}@${DEPLOY_HOST}" \
-              "cd ${REMOTE_PATH} && git pull --ff-only && docker compose -f docker-compose.prod.yml up -d --build && docker image prune -f"
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USER: ${{ github.actor }}

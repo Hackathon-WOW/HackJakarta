@@ -1,8 +1,14 @@
 name: grow-prod
 
-# Production stack for a single DigitalOcean Droplet.
-# Caddy terminates TLS and routes one domain:  /api/* -> gateway,  everything else -> frontend.
-# Only Caddy is exposed to the internet (80/443); all other services stay on the internal network.
+# Production stack — pulls prebuilt images from GHCR (built in CI, like qrypto/goodcafes).
+# The droplet never builds. Caddy terminates TLS and routes one domain:
+#   /api/* -> gateway,  everything else -> frontend.
+# On a shared droplet that already uses 80/443, set CADDY_HTTP_PORT/CADDY_HTTPS_PORT
+# to free ports (or route to the frontend/gateway from your existing proxy).
+
+x-backend: &backend
+  image: ${BACKEND_IMAGE:-ghcr.io/hackathon-wow/grow-backend:latest}
+  restart: unless-stopped
 
 x-backend-env: &backend-env
   DATABASE_URL: postgresql://${POSTGRES_USER:-root}:${POSTGRES_PASSWORD:-rootpassword}@postgres:5432/${POSTGRES_DB:-hackjakarta}?schema=public
@@ -19,12 +25,6 @@ x-backend-env: &backend-env
   AI_API_KEY: ${AI_API_KEY:-}
   AI_MODEL: ${AI_MODEL:-}
   CORS_ORIGIN: ${PUBLIC_URL:-http://localhost}
-
-x-backend-build: &backend-build
-  build:
-    context: ./backend
-    dockerfile: Dockerfile
-  restart: unless-stopped
 
 services:
   postgres:
@@ -55,9 +55,6 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
     volumes:
       - rabbitmqdata:/var/lib/rabbitmq
     healthcheck:
@@ -67,9 +64,9 @@ services:
       retries: 10
     restart: unless-stopped
 
-  # One-shot: apply migrations only (does NOT seed — run seed manually once, see DEPLOY.md).
+  # One-shot migrations: run via `docker compose ... run --rm migrate`
   migrate:
-    <<: *backend-build
+    <<: *backend
     restart: "no"
     environment:
       <<: *backend-env
@@ -79,52 +76,52 @@ services:
         condition: service_healthy
 
   auth-service:
-    <<: *backend-build
+    <<: *backend
     environment:
       <<: *backend-env
     command: bun run services/auth-service/src/index.ts
     depends_on:
-      migrate: { condition: service_completed_successfully }
+      postgres: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
 
   umkm-core-service:
-    <<: *backend-build
+    <<: *backend
     environment:
       <<: *backend-env
     command: bun run services/umkm-core-service/src/index.ts
     depends_on:
-      migrate: { condition: service_completed_successfully }
+      postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
 
   finance-report-service:
-    <<: *backend-build
+    <<: *backend
     environment:
       <<: *backend-env
     command: bun run services/finance-report-service/src/index.ts
     depends_on:
-      migrate: { condition: service_completed_successfully }
+      postgres: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
 
   pos-integration-service:
-    <<: *backend-build
+    <<: *backend
     environment:
       <<: *backend-env
     command: bun run services/pos-integration-service/src/index.ts
     depends_on:
-      migrate: { condition: service_completed_successfully }
+      postgres: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
 
   ai-service:
-    <<: *backend-build
+    <<: *backend
     environment:
       <<: *backend-env
     command: bun run services/ai-service/src/index.ts
     depends_on:
-      migrate: { condition: service_completed_successfully }
+      postgres: { condition: service_healthy }
 
   gateway:
-    <<: *backend-build
+    <<: *backend
     environment:
       <<: *backend-env
       GATEWAY_PORT: "8080"
@@ -137,11 +134,7 @@ services:
       - ai-service
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: ${PUBLIC_URL:-http://localhost}
+    image: ${FRONTEND_IMAGE:-ghcr.io/hackathon-wow/grow-frontend:latest}
     restart: unless-stopped
     depends_on:
       - gateway
@@ -150,8 +143,8 @@ services:
     image: caddy:2-alpine
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - "${CADDY_HTTP_PORT:-80}:80"
+      - "${CADDY_HTTPS_PORT:-443}:443"
     environment:
       DOMAIN: ${DOMAIN:-:80}
     volumes:
