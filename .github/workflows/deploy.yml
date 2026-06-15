@@ -62,9 +62,6 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
             mkdir -p "${{ secrets.DEPLOY_PATH }}/deploy"
-            # keep the edge proxy + tunnel able to reach grow (idempotent)
-            docker network connect grow-prod_default goodcafes-edge-1 2>/dev/null || true
-            docker network connect grow-prod_default qrypto-cloudflared-1 2>/dev/null || true
             if [ ! -f "${{ secrets.DEPLOY_PATH }}/.env" ]; then
               echo "::error::Missing ${{ secrets.DEPLOY_PATH }}/.env on the droplet — create it once (see .env.production.example)"; exit 1
             fi
@@ -92,6 +89,10 @@ jobs:
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml run --rm migrate
             docker compose -f docker-compose.prod.yml up -d
+            # Attach grow's uniquely-named edge to the Cloudflare Tunnel network so the tunnel
+            # can reach it. NOTE: never connect the tunnel/edge INTO grow's network — that makes
+            # the shared name "frontend" ambiguous and hijacks qrypto's route.
+            docker network connect qrypto_default grow-prod-caddy-1 2>/dev/null || true
             docker image prune -f
             docker compose -f docker-compose.prod.yml ps
         env:
