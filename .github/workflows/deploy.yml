@@ -33,7 +33,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
       - name: Build & push backend
         uses: docker/build-push-action@v6
         with:
@@ -95,5 +95,5 @@ jobs:
             docker image prune -f
             docker compose -f docker-compose.prod.yml ps
         env:
-          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_TOKEN: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
           GHCR_USER: ${{ github.actor }}
