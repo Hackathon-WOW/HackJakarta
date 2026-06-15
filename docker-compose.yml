@@ -1,0 +1,163 @@
+name: grow
+
+x-backend-env: &backend-env
+  DATABASE_URL: postgresql://root:rootpassword@postgres:5432/hackjakarta?schema=public
+  REDIS_URL: redis://redis:6379
+  RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+  JWT_SECRET: ${JWT_SECRET:-dev-super-secret-change-me-in-prod}
+  JWT_EXPIRES_IN: 7d
+  AUTH_SERVICE_URL: http://auth-service:3004
+  UMKM_SERVICE_URL: http://umkm-core-service:3003
+  FINANCE_SERVICE_URL: http://finance-report-service:3002
+  POS_SERVICE_URL: http://pos-integration-service:3001
+  AI_SERVICE_URL: http://ai-service:3005
+  AI_BASE_URL: ${AI_BASE_URL:-}
+  AI_API_KEY: ${AI_API_KEY:-}
+  AI_MODEL: ${AI_MODEL:-}
+  CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+
+x-backend-build: &backend-build
+  build:
+    context: ./backend
+    dockerfile: Dockerfile
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: rootpassword
+      POSTGRES_DB: hackjakarta
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d hackjakarta"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmqdata:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # One-shot: apply migrations + seed demo data, then exit.
+  migrate:
+    <<: *backend-build
+    environment:
+      <<: *backend-env
+    command: sh -c "bunx prisma migrate deploy --schema=shared/prisma/schema.prisma && bun run shared/seed.ts"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  auth-service:
+    <<: *backend-build
+    environment:
+      <<: *backend-env
+    command: bun run services/auth-service/src/index.ts
+    ports:
+      - "3004:3004"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+
+  umkm-core-service:
+    <<: *backend-build
+    environment:
+      <<: *backend-env
+    command: bun run services/umkm-core-service/src/index.ts
+    ports:
+      - "3003:3003"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  finance-report-service:
+    <<: *backend-build
+    environment:
+      <<: *backend-env
+    command: bun run services/finance-report-service/src/index.ts
+    ports:
+      - "3002:3002"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+
+  pos-integration-service:
+    <<: *backend-build
+    environment:
+      <<: *backend-env
+    command: bun run services/pos-integration-service/src/index.ts
+    ports:
+      - "3001:3001"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+
+  ai-service:
+    <<: *backend-build
+    environment:
+      <<: *backend-env
+    command: bun run services/ai-service/src/index.ts
+    ports:
+      - "3005:3005"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  gateway:
+    <<: *backend-build
+    environment:
+      <<: *backend-env
+      GATEWAY_PORT: "8080"
+    command: bun run gateway/src/index.ts
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth-service
+      - umkm-core-service
+      - finance-report-service
+      - pos-integration-service
+      - ai-service
+
+volumes:
+  pgdata:
+  redisdata:
+  rabbitmqdata:

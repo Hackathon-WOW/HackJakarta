@@ -1,0 +1,164 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  MSME
+  INVESTOR
+  ADMIN
+}
+
+enum UMKMStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum POSProvider {
+  MOKA
+  PAWOON
+  MAJOO
+  GOBIZ
+  CUSTOM
+}
+
+enum TxnType {
+  INCOME
+  EXPENSE
+}
+
+enum TxnSource {
+  POS
+  EXCEL_UPLOAD
+  MANUAL
+}
+
+enum DocumentType {
+  BUSINESS_PROFILE
+  FINANCIAL_STATEMENT
+  PITCH_SUMMARY
+}
+
+enum InterestStatus {
+  INTERESTED
+  CONTACTED
+  MEETING
+  DEAL
+  PASSED
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(MSME)
+  fullName     String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  umkm      UMKM?              @relation("UMKMOwner")
+  interests InvestorInterest[] @relation("InvestorInterests")
+}
+
+model UMKM {
+  id              String     @id @default(uuid())
+  ownerId         String     @unique
+  owner           User       @relation("UMKMOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  name            String
+  ownerName       String
+  category        String     @default("Food and Beverages")
+  description     String?
+  yearEstablished Int?
+  city            String?
+  address         String?
+  contactPerson   String?
+  logoUrl         String?
+  status          UMKMStatus @default(DRAFT)
+  adminApproved   Boolean    @default(false)
+  prospectScore   Float      @default(0)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  posIntegrations   POSIntegration[]
+  financeReports    FinanceReport[]
+  transactions      Transaction[]
+  documents         Document[]
+  investorInterests InvestorInterest[]
+
+  @@index([status, adminApproved])
+  @@index([category])
+}
+
+model POSIntegration {
+  id         String      @id @default(uuid())
+  umkmId     String
+  umkm       UMKM        @relation(fields: [umkmId], references: [id], onDelete: Cascade)
+  provider   POSProvider @default(CUSTOM)
+  isActive   Boolean     @default(false)
+  lastSyncAt DateTime?
+  createdAt  DateTime    @default(now())
+
+  @@unique([umkmId, provider])
+}
+
+model Transaction {
+  id          String    @id @default(uuid())
+  umkmId      String
+  umkm        UMKM      @relation(fields: [umkmId], references: [id], onDelete: Cascade)
+  amount      Float
+  type        TxnType
+  category    String?
+  source      TxnSource @default(MANUAL)
+  description String?
+  date        DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+
+  @@index([umkmId, date])
+}
+
+model FinanceReport {
+  id           String   @id @default(uuid())
+  umkmId       String
+  umkm         UMKM     @relation(fields: [umkmId], references: [id], onDelete: Cascade)
+  periodMonth  Int
+  periodYear   Int
+  totalRevenue Float    @default(0)
+  totalExpense Float    @default(0)
+  grossProfit  Float    @default(0)
+  netIncome    Float    @default(0)
+  sourceFiles  String[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([umkmId, periodYear, periodMonth])
+}
+
+model Document {
+  id               String       @id @default(uuid())
+  umkmId           String
+  umkm             UMKM         @relation(fields: [umkmId], references: [id], onDelete: Cascade)
+  type             DocumentType
+  title            String
+  generatedContent Json?
+  status           String       @default("READY")
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+}
+
+model InvestorInterest {
+  id         String         @id @default(uuid())
+  investorId String
+  investor   User           @relation("InvestorInterests", fields: [investorId], references: [id], onDelete: Cascade)
+  umkmId     String
+  umkm       UMKM           @relation(fields: [umkmId], references: [id], onDelete: Cascade)
+  status     InterestStatus @default(INTERESTED)
+  note       String?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@unique([investorId, umkmId])
+}

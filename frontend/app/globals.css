@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.9rem;
+
+    /* shadcn-compatible tokens, tuned to the brand (warm paper + emerald ink) */
+    --background: 41 41% 93%;
+    --foreground: 145 26% 11%;
+    --muted: 40 25% 86%;
+    --muted-foreground: 150 8% 40%;
+    --border: 41 24% 82%;
+    --input: 41 24% 82%;
+    --ring: 33 86% 50%;
+
+    --chart-revenue: #18392b;
+    --chart-expense: #d8ccb0;
+    --chart-net: #ee9412;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-paper text-ink font-sans antialiased;
+    font-feature-settings: "ss01", "cv01";
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display tracking-tight;
+    font-feature-settings: "ss01";
+  }
+
+  ::selection {
+    background: #ee9412;
+    color: #15241c;
+  }
+
+  /* refined scrollbar */
+  ::-webkit-scrollbar { width: 11px; height: 11px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: #cdbf9f;
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: #b9a87f; background-clip: padding-box; }
+}
+
+@layer components {
+  /* page width helper */
+  .shell {
+    @apply mx-auto w-full max-w-[1240px] px-5 sm:px-8;
+  }
+
+  /* eyebrow label */
+  .eyebrow {
+    @apply inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em];
+  }
+
+  /* glassy / paper cards */
+  .card-paper {
+    @apply rounded-3xl border border-sand bg-paper-soft shadow-soft;
+  }
+
+  /* primary emerald surface — solid color guarantees dark bg even when a
+     utility like .bg-dots-light overrides background-image */
+  .surface-emerald {
+    background-color: #142a1f;
+    background-image: radial-gradient(120% 120% at 0% 0%, #1d4733 0%, #15281e 55%, #0e1d15 100%);
+  }
+
+  /* amber gradient text */
+  .text-gradient-amber {
+    background: linear-gradient(92deg, #f7ca52 0%, #ee9412 60%, #d97c0a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+@layer utilities {
+  /* organic grain overlay for atmosphere */
+  .grain {
+    position: relative;
+  }
+  .grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.5;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+  }
+
+  /* fine dotted topo background */
+  .bg-dots {
+    background-image: radial-gradient(rgba(21, 36, 28, 0.08) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+
+  .bg-dots-light {
+    background-image: radial-gradient(rgba(246, 241, 231, 0.10) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .text-balance { text-wrap: balance; }
+  .text-pretty { text-wrap: pretty; }
+
+  /* number ticker mono feel */
+  .tabular { font-variant-numeric: tabular-nums; }
+}

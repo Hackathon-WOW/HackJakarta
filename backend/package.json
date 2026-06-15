@@ -1,0 +1,44 @@
+{
+  "name": "grow-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "prisma:generate": "prisma generate --schema=shared/prisma/schema.prisma",
+    "prisma:migrate": "prisma migrate dev --schema=shared/prisma/schema.prisma",
+    "prisma:deploy": "prisma migrate deploy --schema=shared/prisma/schema.prisma",
+    "prisma:push": "prisma db push --schema=shared/prisma/schema.prisma",
+    "seed": "bun run shared/seed.ts",
+    "dev:auth": "bun run --watch services/auth-service/src/index.ts",
+    "dev:umkm": "bun run --watch services/umkm-core-service/src/index.ts",
+    "dev:finance": "bun run --watch services/finance-report-service/src/index.ts",
+    "dev:pos": "bun run --watch services/pos-integration-service/src/index.ts",
+    "dev:ai": "bun run --watch services/ai-service/src/index.ts",
+    "dev:gateway": "bun run --watch gateway/src/index.ts",
+    "start:auth": "bun run services/auth-service/src/index.ts",
+    "start:umkm": "bun run services/umkm-core-service/src/index.ts",
+    "start:finance": "bun run services/finance-report-service/src/index.ts",
+    "start:pos": "bun run services/pos-integration-service/src/index.ts",
+    "start:ai": "bun run services/ai-service/src/index.ts",
+    "start:gateway": "bun run gateway/src/index.ts",
+    "dev:all": "bun run dev:auth & bun run dev:umkm & bun run dev:finance & bun run dev:pos & bun run dev:ai & bun run dev:gateway & wait"
+  },
+  "dependencies": {
+    "@elysiajs/cors": "^1.1.1",
+    "@prisma/client": "^5.22.0",
+    "amqplib": "^0.10.4",
+    "bcryptjs": "^2.4.3",
+    "elysia": "^1.1.24",
+    "jsonwebtoken": "^9.0.2",
+    "papaparse": "^5.4.1",
+    "redis": "^4.7.0",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+  },
+  "devDependencies": {
+    "@types/amqplib": "^0.10.5",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/papaparse": "^5.3.15",
+    "prisma": "^5.22.0"
+  }
+}

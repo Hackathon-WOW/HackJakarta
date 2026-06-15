@@ -1,0 +1,170 @@
+name: grow-prod
+
+# Production stack for a single DigitalOcean Droplet.
+# Caddy terminates TLS and routes one domain:  /api/* -> gateway,  everything else -> frontend.
+# Only Caddy is exposed to the internet (80/443); all other services stay on the internal network.
+
+x-backend-env: &backend-env
+  DATABASE_URL: postgresql://${POSTGRES_USER:-root}:${POSTGRES_PASSWORD:-rootpassword}@postgres:5432/${POSTGRES_DB:-hackjakarta}?schema=public
+  REDIS_URL: redis://redis:6379
+  RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+  JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+  JWT_EXPIRES_IN: 7d
+  AUTH_SERVICE_URL: http://auth-service:3004
+  UMKM_SERVICE_URL: http://umkm-core-service:3003
+  FINANCE_SERVICE_URL: http://finance-report-service:3002
+  POS_SERVICE_URL: http://pos-integration-service:3001
+  AI_SERVICE_URL: http://ai-service:3005
+  AI_BASE_URL: ${AI_BASE_URL:-}
+  AI_API_KEY: ${AI_API_KEY:-}
+  AI_MODEL: ${AI_MODEL:-}
+  CORS_ORIGIN: ${PUBLIC_URL:-http://localhost}
+
+x-backend-build: &backend-build
+  build:
+    context: ./backend
+    dockerfile: Dockerfile
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-root}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-rootpassword}
+      POSTGRES_DB: ${POSTGRES_DB:-hackjakarta}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-root} -d ${POSTGRES_DB:-hackjakarta}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmqdata:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # One-shot: apply migrations only (does NOT seed — run seed manually once, see DEPLOY.md).
+  migrate:
+    <<: *backend-build
+    restart: "no"
+    environment:
+      <<: *backend-env
+    command: sh -c "bunx prisma migrate deploy --schema=shared/prisma/schema.prisma"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  auth-service:
+    <<: *backend-build
+    environment:
+      <<: *backend-env
+    command: bun run services/auth-service/src/index.ts
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      rabbitmq: { condition: service_healthy }
+
+  umkm-core-service:
+    <<: *backend-build
+    environment:
+      <<: *backend-env
+    command: bun run services/umkm-core-service/src/index.ts
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+
+  finance-report-service:
+    <<: *backend-build
+    environment:
+      <<: *backend-env
+    command: bun run services/finance-report-service/src/index.ts
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      rabbitmq: { condition: service_healthy }
+
+  pos-integration-service:
+    <<: *backend-build
+    environment:
+      <<: *backend-env
+    command: bun run services/pos-integration-service/src/index.ts
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      rabbitmq: { condition: service_healthy }
+
+  ai-service:
+    <<: *backend-build
+    environment:
+      <<: *backend-env
+    command: bun run services/ai-service/src/index.ts
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+
+  gateway:
+    <<: *backend-build
+    environment:
+      <<: *backend-env
+      GATEWAY_PORT: "8080"
+    command: bun run gateway/src/index.ts
+    depends_on:
+      - auth-service
+      - umkm-core-service
+      - finance-report-service
+      - pos-integration-service
+      - ai-service
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${PUBLIC_URL:-http://localhost}
+    restart: unless-stopped
+    depends_on:
+      - gateway
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:-:80}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+      - gateway
+
+volumes:
+  pgdata:
+  redisdata:
+  rabbitmqdata:
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,16 @@
+# Single-domain routing. Set DOMAIN in .env:
+#   - a hostname (e.g. grow.example.com) => automatic HTTPS via Let's Encrypt
+#   - ":80"                              => plain HTTP (e.g. when using a bare Droplet IP)
+{$DOMAIN} {
+	encode gzip
+
+	# API gateway
+	handle /api/* {
+		reverse_proxy gateway:8080
+	}
+
+	# Everything else -> Next.js frontend
+	handle {
+		reverse_proxy frontend:3000
+	}
+}
