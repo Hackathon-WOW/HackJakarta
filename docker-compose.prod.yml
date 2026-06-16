@@ -143,9 +143,10 @@ services:
     image: caddy:2-alpine
     restart: unless-stopped
     # Only an internal HTTP port — TLS/public routing is handled by the host's
-    # reverse proxy (Traefik) or Cloudflare Tunnel -> grow-prod-caddy-1:80.
+    # Cloudflare Tunnel -> grow-prod-caddy-1:80. Localhost-bound so it is never
+    # reachable from the internet directly (the tunnel reaches it on `edge`).
     ports:
-      - "${CADDY_HTTP_PORT:-8090}:80"
+      - "127.0.0.1:${CADDY_HTTP_PORT:-8090}:80"
     environment:
       DOMAIN: ${DOMAIN:-:80}
     volumes:
@@ -155,6 +156,9 @@ services:
     depends_on:
       - frontend
       - gateway
+    networks:
+      - default
+      - edge
 
 volumes:
   pgdata:
@@ -162,3 +166,10 @@ volumes:
   rabbitmqdata:
   caddy_data:
   caddy_config:
+
+networks:
+  # Shared Cloudflare Tunnel network, owned by the neutral /opt/edge project.
+  # Create once on the host: docker network create edge
+  edge:
+    external: true
+    name: edge
