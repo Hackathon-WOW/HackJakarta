@@ -138,6 +138,12 @@ services:
     restart: unless-stopped
     depends_on:
       - gateway
+    # Unique alias so the caddy reverse_proxy never collides with another app's
+    # `frontend` on the shared `edge` network.
+    networks:
+      default:
+        aliases:
+          - grow-frontend
 
   caddy:
     image: caddy:2-alpine

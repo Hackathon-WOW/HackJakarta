@@ -9,8 +9,10 @@
 		reverse_proxy gateway:8080
 	}
 
-	# Everything else -> Next.js frontend
+	# Everything else -> Next.js frontend. Use the grow-specific alias (not the
+	# generic `frontend`) so it can't collide with another app's `frontend`
+	# service on the shared `edge` tunnel network.
 	handle {
-		reverse_proxy frontend:3000
+		reverse_proxy grow-frontend:3000
 	}
 }
